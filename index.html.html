@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LILLA TIMMEN · Vart ska vi i dag?</title>
+<meta name="description" content="Vädret bestämmer först. Du väljer resten. Ett ställe för barnet, på 8 sekunder.">
+<meta name="theme-color" content="#FBF7EF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF7EF;
+  --card:#FFFDF8;
+  --sky:#D8EAF3;
+  --ink:#20302A;
+  --ink-soft:rgba(32,48,42,.66);
+  --sun:#F0B23E;
+  --pine:#3F7159;
+  --lingon:#C25749;
+  --line:rgba(32,48,42,.14);
+  --radius:20px;
+  --disp:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.5;
+  min-height:100dvh;
+}
+.wrap{max-width:480px;margin:0 auto;padding:0 18px 40px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--pine)}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px;border-radius:6px}
+
+/* ---------- sky ribbon (signature) ---------- */
+.ribbon{
+  margin:14px 0 0;border-radius:16px;border:1px solid var(--line);
+  padding:12px 16px;display:flex;align-items:center;gap:12px;
+  background:linear-gradient(120deg,#EDEFEA,#DFE6E3);
+  transition:background .6s ease;width:100%;text-align:left;
+}
+.ribbon.w-sun{background:linear-gradient(120deg,#FDE9B8,#D8EAF3)}
+.ribbon.w-gray{background:linear-gradient(120deg,#E6EAE7,#D5DEE2)}
+.ribbon.w-wet{background:linear-gradient(120deg,#C9D8E2,#B3C7D4)}
+.ribbon.w-cold{background:linear-gradient(120deg,#EDF4F9,#D7E4EE)}
+.ribbon svg{flex:0 0 34px}
+.ribbon .temp{font-family:var(--mono);font-size:1.05rem;font-weight:600;white-space:nowrap}
+.ribbon .cond{font-size:.86rem;color:var(--ink-soft);line-height:1.3}
+.ribbon .hint{margin-left:auto;font-size:.72rem;color:var(--ink-soft);white-space:nowrap}
+
+.override{
+  display:none;margin-top:10px;padding:12px 14px;border:1px dashed var(--line);
+  border-radius:14px;background:var(--card)
+}
+.override.open{display:block}
+.override p{font-size:.85rem;color:var(--ink-soft);margin-bottom:8px}
+.override .chips{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- header ---------- */
+header.hero{padding:26px 0 4px;text-align:left}
+.brand{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;color:var(--pine)}
+h1{font-family:var(--disp);font-weight:600;font-size:2.05rem;line-height:1.12;margin:6px 0 4px}
+.sub{color:var(--ink-soft);font-size:.95rem;max-width:34ch}
+.langtoggle{
+  position:absolute;top:14px;right:16px;font-family:var(--mono);font-size:.74rem;
+  border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--card)
+}
+.topbar{position:relative;max-width:480px;margin:0 auto}
+
+/* ---------- chips ---------- */
+.q{margin-top:22px}
+.q .label{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  border:1px solid var(--line);border-radius:999px;padding:10px 16px;
+  background:var(--card);font-size:.92rem;transition:background .15s,color .15s
+}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip:active{transform:scale(.97)}
+
+/* ---------- CTA ---------- */
+.go{
+  margin-top:26px;width:100%;border-radius:16px;padding:16px;
+  background:var(--sun);color:var(--ink);font-family:var(--disp);
+  font-size:1.25rem;font-weight:600;border:1px solid rgba(32,48,42,.2);
+  box-shadow:0 2px 0 rgba(32,48,42,.25)
+}
+.go:active{transform:translateY(1px);box-shadow:none}
+
+/* ---------- answer card ---------- */
+.answer{display:none;margin-top:22px}
+.answer.show{display:block;animation:rise .35s ease}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.answer.show{animation:none}.ribbon{transition:none}}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;box-shadow:0 6px 24px rgba(32,48,42,.07)
+}
+.card .area{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;color:var(--pine);text-transform:uppercase}
+.card h2{font-family:var(--disp);font-weight:600;font-size:1.55rem;line-height:1.15;margin:6px 0 6px}
+.card .why{font-size:.95rem;margin-bottom:10px}
+.card .meta{font-size:.82rem;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap}
+.card .meta .stars{color:var(--sun);font-weight:600;color:#B07F1E}
+.relaxnote{font-size:.78rem;color:var(--lingon);margin-bottom:8px;display:none}
+.relaxnote.show{display:block}
+.cardbtns{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.btn{
+  border:1px solid var(--line);border-radius:12px;padding:11px 14px;
+  background:var(--paper);font-size:.9rem;font-weight:600;text-decoration:none;color:var(--ink);
+  display:inline-flex;align-items:center;gap:6px
+}
+.btn.primary{background:var(--pine);color:#fff;border-color:var(--pine)}
+
+/* ---------- browse panels ---------- */
+.browse{margin-top:34px}
+.browse .label{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:10px}
+.panelchips{display:flex;gap:8px;flex-wrap:wrap}
+.list{margin-top:14px;display:none;flex-direction:column;gap:8px}
+.list.open{display:flex}
+.row{
+  width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px
+}
+.row .nm{font-weight:600;font-size:.95rem}
+.row .ar{font-size:.78rem;color:var(--ink-soft)}
+.row .rt{margin-left:auto;font-family:var(--mono);font-size:.8rem;color:#B07F1E;white-space:nowrap}
+
+/* ---------- detail sheet ---------- */
+.scrim{position:fixed;inset:0;background:rgba(32,48,42,.4);display:none;z-index:40}
+.scrim.open{display:block}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;display:none;
+  background:var(--card);border-radius:22px 22px 0 0;border-top:1px solid var(--line);
+  max-width:520px;margin:0 auto;padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  max-height:82dvh;overflow:auto
+}
+.sheet.open{display:block;animation:rise .25s ease}
+.sheet .grab{width:44px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}
+.sheet h2{font-family:var(--disp);font-size:1.4rem;margin:2px 0 6px}
+.sheet .desc{font-size:.94rem;margin:8px 0 12px}
+.fac{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.fac span{font-size:.76rem;border:1px solid var(--line);border-radius:999px;padding:5px 10px;background:var(--paper)}
+.hrs{font-size:.82rem;color:var(--ink-soft);margin-bottom:14px}
+
+/* ---------- footer ---------- */
+footer{margin-top:48px;border-top:1px solid var(--line);padding-top:22px;text-align:center}
+.kofi{
+  display:inline-block;background:#c9a84c;color:#20302A;font-weight:700;
+  border-radius:999px;padding:11px 22px;text-decoration:none;font-size:.92rem
+}
+.socials{margin-top:14px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-size:.82rem}
+.socials a{color:var(--ink-soft);text-decoration:none}
+.socials a:hover{color:var(--pine)}
+.stamp{margin-top:16px;font-family:var(--mono);font-size:.68rem;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<div class="topbar"><button class="langtoggle" id="langBtn" aria-label="Switch language">EN</button></div>
+<main class="wrap">
+  <header class="hero">
+    <div class="brand">LILLA TIMMEN</div>
+    <h1 id="h1"></h1>
+    <p class="sub" id="sub"></p>
+  </header>
+
+  <button class="ribbon w-gray" id="ribbon" aria-live="polite">
+    <svg id="wicon" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"></svg>
+    <div>
+      <div class="temp" id="wtemp">…</div>
+      <div class="cond" id="wcond"></div>
+    </div>
+    <div class="hint" id="whint"></div>
+  </button>
+  <div class="override" id="override">
+    <p id="ovtext"></p>
+    <div class="chips">
+      <button class="chip" data-ov="fine" id="ovSun"></button>
+      <button class="chip" data-ov="wet" id="ovRain"></button>
+      <button class="chip" data-ov="cold" id="ovCold"></button>
+      <button class="chip" data-ov="retry" id="ovRetry"></button>
+    </div>
+  </div>
+
+  <section class="q">
+    <div class="label" id="ageLabel"></div>
+    <div class="chips" id="ageChips" role="group"></div>
+  </section>
+  <section class="q">
+    <div class="label" id="timeLabel"></div>
+    <div class="chips" id="timeChips" role="group"></div>
+  </section>
+
+  <button class="go" id="goBtn"></button>
+
+  <section class="answer" id="answer">
+    <div class="card">
+      <p class="relaxnote" id="relaxnote"></p>
+      <div class="area" id="aArea"></div>
+      <h2 id="aName"></h2>
+      <p class="why" id="aWhy"></p>
+      <div class="meta">
+        <span class="stars" id="aStars"></span>
+        <span id="aHrs"></span>
+      </div>
+      <div class="cardbtns">
+        <a class="btn primary" id="aMaps" target="_blank" rel="noopener"></a>
+        <button class="btn" id="aMore"></button>
+        <button class="btn" id="aNext"></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="browse">
+    <div class="label" id="browseLabel"></div>
+    <div class="panelchips" id="panelChips"></div>
+    <div class="list" id="browseList"></div>
+  </section>
+
+  <footer>
+    <a class="kofi" href="https://ko-fi.com/shamathakur" target="_blank" rel="noopener">☕ Support the work</a>
+    <div class="socials">
+      <a href="https://instagram.com/shama_thakur77" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://pinterest.com/thkrshama" target="_blank" rel="noopener">Pinterest</a>
+      <a href="https://linkedin.com/in/shama-t-b7250632" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://substack.com/@shamathakur" target="_blank" rel="noopener">Substack</a>
+      <a href="https://medium.com/@shamathakur77" target="_blank" rel="noopener">Medium</a>
+      <a href="https://shamathakur.carrd.co/" target="_blank" rel="noopener">shamathakur.carrd.co</a>
+    </div>
+    <div class="stamp" id="stamp">LILLA TIMMEN v1.0.0 · build 2026-06-12 · väderdata: open-meteo.com</div>
+  </footer>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sName">
+  <div class="grab"></div>
+  <div class="area" id="sArea" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;color:var(--pine);text-transform:uppercase"></div>
+  <h2 id="sName"></h2>
+  <div class="meta" style="font-size:.82rem;color:var(--ink-soft)"><span id="sStars" style="color:#B07F1E;font-weight:600"></span></div>
+  <p class="desc" id="sDesc"></p>
+  <div class="fac" id="sFac"></div>
+  <p class="hrs" id="sHrs"></p>
+  <div class="cardbtns">
+    <a class="btn primary" id="sMaps" target="_blank" rel="noopener"></a>
+    <button class="btn" id="sShare"></button>
+    <button class="btn" id="sClose"></button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============ i18n ============ */
+const I18N = {
+  sv:{
+    h1:"Vart ska vi i dag?",
+    sub:"Vädret bestämmer först. Du väljer resten. Ett ställe, på åtta sekunder.",
+    ageLabel:"Hur gammal är barnet?",
+    timeLabel:"Hur mycket ork och tid?",
+    ages:["Bebis 0–2","Knatte 2–4","Barn 5+"],
+    times:["Snabbis 30 min","Halvdag","Heldag"],
+    go:"Visa stället",
+    maps:"Öppna i Maps",
+    more:"Mer info",
+    next:"Visa ett till",
+    share:"Dela kort",
+    close:"Stäng",
+    browseLabel:"Eller bläddra efter känsla",
+    panels:["Lekplatser","Inomhus","Natur & skog","Gratis","Expat-vänligt"],
+    relax:"Närmaste träff för era val, vi tänjde lite på filtren.",
+    whintTap:"tryck för att ändra",
+    ovFail:"Vädret laddar inte just nu. Välj läge själv:",
+    ovManual:"Du styr vädret manuellt. Välj läge:",
+    ovSun:"☀️ Sol", ovRain:"🌧 Regn", ovCold:"❄️ Kallt", ovRetry:"↻ Hämta igen",
+    advice:{fine:"Fint ute, vi siktar på frisk luft",gray:"Gråväder funkar, kläder efter väder",wet:"Regnigt, vi siktar inomhus",cold:"Kallt, inomhus eller vinterlek"},
+    cond:{sun:"Sol",part:"Halvklart",cloud:"Mulet",fog:"Dimma",drizzle:"Duggregn",rain:"Regn",snow:"Snö",thunder:"Åska",manual:"Manuellt läge",unknown:"Väder okänt"},
+    verify:"Kolla dagens tider i Maps innan ni åker.",
+    fac:{wc:"Skötbord",cafe:"Café på plats",pram:"Vagnvänligt",free:"Gratis",eng:"Engelska funkar",swim:"Bad",animals:"Djur",staffed:"Bemannad parklek"},
+    reviews:"recensioner"
+  },
+  en:{
+    h1:"Where to today?",
+    sub:"The weather decides first. You pick the rest. One place, in eight seconds.",
+    ageLabel:"How old is your kid?",
+    timeLabel:"How much energy and time?",
+    ages:["Baby 0–2","Toddler 2–4","Kid 5+"],
+    times:["Quick 30 min","Half day","All day"],
+    go:"Show me the place",
+    maps:"Open in Maps",
+    more:"Details",
+    next:"Show another",
+    share:"Share card",
+    close:"Close",
+    browseLabel:"Or browse by mood",
+    panels:["Playgrounds","Indoor","Nature & forest","Free","Expat-friendly"],
+    relax:"Closest match for your picks, we stretched the filters a little.",
+    whintTap:"tap to change",
+    ovFail:"Weather will not load right now. Pick a mode yourself:",
+    ovManual:"You are steering the weather manually. Pick a mode:",
+    ovSun:"☀️ Sunny", ovRain:"🌧 Rainy", ovCold:"❄️ Cold", ovRetry:"↻ Fetch again",
+    advice:{fine:"Lovely out, fresh air first",gray:"Grey works, dress for it",wet:"Rainy, we aim indoors",cold:"Cold, indoors or winter play"},
+    cond:{sun:"Sunny",part:"Partly cloudy",cloud:"Overcast",fog:"Fog",drizzle:"Drizzle",rain:"Rain",snow:"Snow",thunder:"Thunder",manual:"Manual mode",unknown:"Weather unknown"},
+    verify:"Check today's hours in Maps before you go.",
+    fac:{wc:"Changing table",cafe:"Café on site",pram:"Pram-friendly",free:"Free",eng:"English works fine",swim:"Swimming",animals:"Animals",staffed:"Staffed playground"},
+    reviews:"reviews"
+  }
+};
+
+/* ============ places ============ */
+/* env: out | in | mix · ages: 0 baby, 1 toddler, 2 kid5+ · time: 0 quick, 1 half, 2 full
+   season: 'sum' = summer only · boost: 'win' | 'sum' = seasonal score boost */
+const PLACES = [
+{id:"humlegarden",n:"Humlegårdens lekplats",area:"Östermalm",pid:"ChIJR8HHqB-dX0YRjgPkUtMvvgE",r:4.7,rc:147,env:"out",ages:[0,1,2],time:[0,1],cats:["play"],free:true,expat:true,fac:["wc","pram","staffed"],
+ hrs:{sv:"Parken alltid öppen, bemannad vardagar",en:"Park always open, staffed weekdays"},
+ why:{sv:"Inhägnade ytor per ålder, mitt i stan, toaletter som funkar.",en:"Fenced zones by age, right in town, toilets that actually work."},
+ desc:{sv:"Stor klassiker i Humlegården med sandlådor, skugga och grillplats. Öppna förskolan intill har toaletter och billigt kaffe.",en:"A central classic in Humlegården park with sandpits, shade and a barbecue spot. The open preschool next to it has toilets and cheap coffee."}},
+{id:"vasaparken",n:"Vasaparkens lekplats",area:"Vasastan",pid:"ChIJT_0t5nqdX0YRYcmmsxav8bY",r:4.5,rc:473,env:"out",ages:[0,1,2],time:[0,1],cats:["play"],free:true,expat:true,fac:["wc","pram","staffed"],
+ hrs:{sv:"Dagligen, parkleken bemannad dagtid",en:"Daily, staffed daytime"},
+ why:{sv:"Nyrustad, trampoliner och lånecyklar, något för varje ålder.",en:"Recently renovated, trampolines and loan bikes, something for every age."},
+ desc:{sv:"Stor parklek med klätterberg, studsmattor och cykelslinga. Tio kronors korv och toaletter på plats.",en:"Big staffed playground with a climbing hill, trampolines and a bike loop. Ten kronor hot dogs and toilets on site."}},
+{id:"ralis",n:"Rålis parklek",area:"Kungsholmen",pid:"ChIJy9UWQtR3X0YRNMI7Dr_B_Zk",r:4.6,rc:468,env:"mix",ages:[0,1,2],time:[0,1],cats:["play"],free:true,expat:true,fac:["wc","pram","staffed"],
+ hrs:{sv:"Vardagar 9–17, parken alltid öppen",en:"Weekdays 9–17, park always open"},
+ why:{sv:"Kulglid och snickarglädje, plus ett hus att gå in i när det duggar.",en:"Marble runs and handmade play houses, plus an indoor room when it drizzles."},
+ desc:{sv:"Bemannad parklek vid Rålambshovsparken med egensnickrade lekmiljöer och ett inomhusrum med böcker. Ta med egna kulor till kulbanorna.",en:"Staffed playground by Rålambshovsparken with handmade play areas and an indoor room with books. Bring marbles for the marble runs."}},
+{id:"uggleparken",n:"Uggleparken, Kristinebergs slottspark",area:"Kristineberg",pid:"ChIJwalUOCh2X0YRh8El0tQRKMU",r:4.4,rc:882,env:"out",ages:[1,2],time:[0,1],cats:["play"],free:true,expat:true,fac:["pram"],
+ hrs:{sv:"Alltid öppen",en:"Always open"},
+ why:{sv:"Jätteugglor med rutschkanor, platt och vagnvänligt från tunnelbanan.",en:"Giant owl slides, flat and pram-friendly straight from the metro."},
+ desc:{sv:"Temapark med stora träugglor, skalbaggar och blommor att klättra i. Bäst från ungefär tre år. Nära Kristinebergs tunnelbana.",en:"Themed park with giant wooden owls, beetles and flowers to climb. Best from around age three. Right by Kristineberg metro."}},
+{id:"bandangen",n:"Bandängens parklek",area:"Bandhagen",pid:"ChIJlZpA-mJ3X0YRh1grOCNM3Jo",r:4.5,rc:806,env:"out",ages:[0,1,2],time:[1,2],cats:["play"],free:true,expat:false,boost:"sum",fac:["wc","cafe","pram","animals","staffed"],
+ hrs:{sv:"Dagligen 9/10–16/17",en:"Daily 9/10–16/17"},
+ why:{sv:"Djur, plaskdamm och grill, en hel dag utan att betala något.",en:"Animals, a paddling pool and barbecues, a whole day without paying a thing."},
+ desc:{sv:"Parklek med getter, höns och kaniner, plaskdamm på sommaren och kiosk. Känns som en liten bondgård i förorten.",en:"Staffed playground with goats, hens and rabbits, a summer paddling pool and a kiosk. Feels like a small farm in the suburbs."}},
+{id:"tessin",n:"Tessinparkens parklek",area:"Gärdet",pid:"ChIJ0QrnNUidX0YRhvIMB6m16Y8",r:4.3,rc:142,env:"out",ages:[0,1,2],time:[0,1],cats:["play"],free:true,expat:false,fac:["wc","pram","staffed"],
+ hrs:{sv:"Vardagar 11–17/19",en:"Weekdays 11–17/19"},
+ why:{sv:"Nyrenoverad, lugn och klassiskt svensk, med vattenlek intill.",en:"Newly renovated, calm and classically Swedish, water play nearby."},
+ desc:{sv:"Lugnare parklek på Gärdet med lånecyklar, hockeyplan och billigt kaffe. Vattenlek i närheten på sommaren.",en:"A calmer staffed playground at Gärdet with loan bikes, a rink and cheap coffee. Water play nearby in summer."}},
+{id:"franzen",n:"Anders Franzéns park",area:"Henriksdal",pid:"ChIJv-wybQV4X0YR-MI6giMHEx0",r:4.5,rc:703,env:"out",ages:[1,2],time:[0,1],cats:["play"],free:true,expat:false,fac:["pram"],
+ hrs:{sv:"Alltid öppen",en:"Always open"},
+ why:{sv:"En liten lekby vid vattnet, byggd som ett varvskvarter.",en:"A tiny play village by the water, built like an old shipyard block."},
+ desc:{sv:"Lekplats formad som en miniby med små hus, gungor och studsmattor. Tvååringar kan gå runt här i timmar.",en:"A playground shaped like a miniature village with little houses, swings and trampolines. Two year olds can wander here for hours."}},
+{id:"ivarlo",n:"Ivar Los park",area:"Södermalm",pid:"ChIJYyJPTGB3X0YRpoBkXzSuCok",r:4.7,rc:140,env:"out",ages:[0,1],time:[0],cats:["play"],free:true,expat:false,fac:["pram"],
+ hrs:{sv:"Alltid öppen",en:"Always open"},
+ why:{sv:"Liten lekplats med stadens finaste utsikt, perfekt snabbis.",en:"A small playground with the city's best view, a perfect quick stop."},
+ desc:{sv:"Pytteliten park på Söders höjder med utsikt över Stadshuset och Riddarfjärden. Barnet gungar, du andas.",en:"A tiny park on the Södermalm heights overlooking City Hall and the water. The kid swings, you breathe."}},
+{id:"funland",n:"Funland",area:"Sollentuna",pid:"ChIJFxxzGQCfX0YRo88RS4YdWck",r:4.8,rc:169,env:"in",ages:[0,1],time:[1],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng"],
+ hrs:{sv:"Dagligen 10–18/20",en:"Daily 10–18/20"},
+ why:{sv:"Lagom stort lekland, rent och lugnt, lätt att ha koll på barnet.",en:"A right-sized play centre, clean and calm, easy to keep eyes on your kid."},
+ desc:{sv:"Mindre lekland i Sollentuna som inte överväldigar små barn. Föräldrar brukar nämna just lugnet och städningen.",en:"A smaller indoor play centre in Sollentuna that does not overwhelm little kids. Parents tend to mention exactly that: the calm and the cleanliness."}},
+{id:"leoskk",n:"Leo's Lekland Kungens kurva",area:"Kungens kurva",pid:"ChIJQTquBrl2X0YR9kHldEwwVmo",r:3.9,rc:1477,env:"in",ages:[1,2],time:[1,2],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng"],
+ hrs:{sv:"Dagligen 9–19",en:"Daily 9–19"},
+ why:{sv:"Stort klassiskt lekland i två plan, barnet sover gott i kväll.",en:"A big classic two-floor play centre, the kid will sleep well tonight."},
+ desc:{sv:"Leos vid Kungens kurva med klätterställningar, rutschkanor och café. Ta med strumpor, de är obligatoriska.",en:"Leo's by Kungens kurva with climbing frames, slides and a café. Bring socks, they are mandatory."}},
+{id:"leosarninge",n:"Leo's Lekland Arninge",area:"Täby",pid:"ChIJjSs__f6aX0YRQzvEugbzK4A",r:4.0,rc:1276,env:"in",ages:[1,2],time:[1,2],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng"],
+ hrs:{sv:"Dagligen 9–19",en:"Daily 9–19"},
+ why:{sv:"Norrortens stora lekland, med egen avdelning för de under två.",en:"The big play centre north of town, with its own under-two section."},
+ desc:{sv:"Leos i Arninge med fullt program av rutschkanor och bollhav, plus en lugnare hörna för de minsta.",en:"Leo's in Arninge with the full slide-and-ballpit programme, plus a quieter corner for the smallest."}},
+{id:"lekrum",n:"Lekrum Glädjefyllt",area:"Liljeholmen",pid:"ChIJYR5Abqas6wUR-4Jgl2mE9mY",r:4.4,rc:69,env:"in",ages:[0,1],time:[0,1],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng"],
+ hrs:{sv:"Mån, tis, fre–sön 10–14. Stängt ons–tors",en:"Mon, Tue, Fri–Sun 10–14. Closed Wed–Thu"},
+ why:{sv:"Bebisvänligt lekrum med bra kaffe, byggt för föräldralediga.",en:"A baby-friendly play room with good coffee, built for parental leave days."},
+ desc:{sv:"Litet ljust lekrum för bebisar och knattar med café och skötrum. Kolla öppettiderna, de är korta och stängt mitt i veckan.",en:"A small bright play room for babies and toddlers with a café and changing room. Check the hours, they are short and it closes midweek."}},
+{id:"kaatach",n:"Kaatach Lekland",area:"Tyresö",pid:"ChIJv-mgSOd-X0YRLU8audpId3k",r:4.1,rc:460,env:"in",ages:[1],time:[1],cats:["indoor"],free:false,expat:false,boost:"win",fac:["wc","cafe"],
+ hrs:{sv:"Dagligen 10–18, lunchstängt 13.30–14.30",en:"Daily 10–18, closed 13.30–14.30"},
+ why:{sv:"Mysigt mindre lekland, lagom för en knatte runt tre.",en:"A cosy smaller play centre, just right for a three-ish year old."},
+ desc:{sv:"Färgglatt lekland i Tyresö med café. Bäst för åldrarna två till sex, äldre barn tröttnar fortare.",en:"A colourful play centre in Tyresö with a café. Best for ages two to six, older kids get bored faster."}},
+{id:"junibacken",n:"Junibacken",area:"Djurgården",pid:"ChIJk2nPjVOdX0YRADBTMFLf7fo",r:4.4,rc:7199,env:"in",ages:[1,2],time:[1],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng"],
+ hrs:{sv:"Dagligen ca 10–17",en:"Daily approx 10–17"},
+ why:{sv:"Pippi och Sagotåget, magiskt för två till fem år.",en:"Pippi Longstocking and the Story Train, magic for ages two to five."},
+ desc:{sv:"Astrid Lindgrens sagovärld med Sagotåget som höjdpunkt. Vagnar får inte tas in, så bärsele för bebisar. Engelska funkar överallt.",en:"Astrid Lindgren's storybook world with the Story Train as the highlight. No strollers inside, so bring a carrier for babies. English works everywhere."}},
+{id:"tekniska",n:"Tekniska museet",area:"Norra Djurgården",pid:"ChIJsUX0N7CCX0YRQAeUrKac-jU",r:4.3,rc:9334,env:"in",ages:[1,2],time:[1,2],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng","pram"],
+ hrs:{sv:"Dagligen 9–21",en:"Daily 9–21"},
+ why:{sv:"Allt får röras, hela dagen försvinner, öppet till nio.",en:"Everything can be touched, the whole day disappears, open till nine."},
+ desc:{sv:"Interaktivt teknikmuseum där barnen trycker, drar och bygger. MegaMind-delen räddar vilken regndag som helst. Allt finns på engelska.",en:"A hands-on science museum where kids push, pull and build. The MegaMind floor rescues any rainy day. Everything is in English too."}},
+{id:"naturhistoriska",n:"Naturhistoriska riksmuseet",area:"Frescati",pid:"ChIJPaaZwgadX0YR_XtKAvqZXw4",r:4.5,rc:8797,env:"in",ages:[1,2],time:[1,2],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng","pram"],
+ hrs:{sv:"Tis–sön ca 10/11–17. Stängt måndagar",en:"Tue–Sun approx 10/11–17. Closed Mondays"},
+ why:{sv:"Dinosaurier och uppstoppade djur, en säker hit från två år.",en:"Dinosaurs and life-size animals, a safe hit from age two."},
+ desc:{sv:"Stort naturmuseum vid Universitetet med dinosaurier, valar och polarrum. Matsäcksrum med mikro finns. Stängt på måndagar.",en:"A big natural history museum by Universitetet metro with dinosaurs, whales and polar rooms. There is a packed-lunch room with microwaves. Closed Mondays."}},
+{id:"skansen",n:"Skansen",area:"Djurgården",pid:"ChIJN5Ta_qqCX0YRMYVG1s-2NSw",r:4.5,rc:34867,env:"mix",ages:[0,1,2],time:[2],cats:["nature"],free:false,expat:true,fac:["wc","cafe","eng","animals","pram"],
+ hrs:{sv:"Dagligen ca 10–16/18",en:"Daily approx 10–16/18"},
+ why:{sv:"Björnar, älgar och Lill-Skansen, hela Sverige på en kulle.",en:"Bears, moose and the petting zoo, all of Sweden on one hill."},
+ desc:{sv:"Friluftsmuseum och djurpark i ett. Räkna med backar, bra vagn eller bärsele hjälper. Fint året om, även i snö.",en:"Open-air museum and zoo in one. Expect hills, a sturdy pram or carrier helps. Lovely year round, even in snow."}},
+{id:"vasa",n:"Vasamuseet",area:"Djurgården",pid:"ChIJrymDbVSdX0YRQTLBtPGa8M8",r:4.8,rc:68117,env:"in",ages:[2],time:[1],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng","pram"],
+ hrs:{sv:"Dagligen 8.30/10–18",en:"Daily 8.30/10–18"},
+ why:{sv:"Ett riktigt skepp från 1628, femåringar tappar hakan.",en:"A real warship from 1628, five year olds drop their jaws."},
+ desc:{sv:"Regalskeppet Vasa i full storlek, med barnspår och gratis audioguide. Bäst från fem år, ta en jacka, det är svalt inne.",en:"The warship Vasa at full scale, with a kids' trail and a free audio guide. Best from age five, bring a jacket, it is chilly inside."}},
+{id:"sparvags",n:"Spårvägsmuseet",area:"Norra Djurgårdsstaden",pid:"ChIJ1UsyvN-dX0YRXZfZgiWdzc0",r:4.4,rc:1154,env:"in",ages:[1,2],time:[0,1],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng"],
+ hrs:{sv:"Tis–sön 11–17. Stängt måndagar",en:"Tue–Sun 11–17. Closed Mondays"},
+ why:{sv:"Gamla bussar, tunnelbanevagnar och ett minitåg för knattar.",en:"Old buses, metro cars and a mini train for toddlers."},
+ desc:{sv:"Kollektivtrafikens museum i gamla gasverket. Minitåget är värt kön om barnet är i fordonsåldern. Stängt på måndagar.",en:"Stockholm's transport museum in the old gasworks. The mini train is worth the queue if your kid is in the vehicle phase. Closed Mondays."}},
+{id:"postmuseum",n:"Postmuseum",area:"Gamla stan",pid:"ChIJuyTlSOJ3X0YRdTxjx7IoRyk",r:4.4,rc:541,env:"in",ages:[1,2],time:[0,1],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng"],
+ hrs:{sv:"Tis–sön ca 10/11–16/17. Stängt måndagar. Barn gratis",en:"Tue–Sun approx 10/11–16/17. Closed Mondays. Kids free"},
+ why:{sv:"Hemligt bra barnrum i Gamla stan, och barn går in gratis.",en:"A secretly great kids' floor in the Old Town, and kids enter free."},
+ desc:{sv:"Litet museum med ett påkostat lekrum kring post och paket, lektiden där är passbaserad. Lugn innergård med café.",en:"A small museum with a brilliant play floor about post and parcels, play sessions run in timed slots. Calm courtyard café."}},
+{id:"fjarils",n:"Fjärilshuset Haga Ocean",area:"Hagaparken, Solna",pid:"ChIJlYY_t6WdX0YR-iN2Xd3VMIY",r:4.0,rc:4416,env:"in",ages:[0,1,2],time:[1,2],cats:["indoor","nature"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng"],
+ hrs:{sv:"Dagligen 10–17",en:"Daily 10–17"},
+ why:{sv:"Tropisk värme, fladdrande fjärilar och en liten haj, mitt i vintern.",en:"Tropical heat, loose butterflies and a small shark, in the middle of winter."},
+ desc:{sv:"Regnskogshus och akvarium i Hagaparken. Varmt och fuktigt inne, klä barnet i ett tunt lager. Dyrt men minnesvärt.",en:"A rainforest house and aquarium in Hagaparken. Warm and humid inside, dress the kid in one thin layer. Pricey but memorable."}},
+{id:"tomtits",n:"Tom Tits Experiment",area:"Södertälje",pid:"ChIJR6w6EGINX0YRhBTTnSW5dCs",r:4.4,rc:5027,env:"in",ages:[1,2],time:[2],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng","pram"],
+ hrs:{sv:"Dagligen 10–17",en:"Daily 10–17"},
+ why:{sv:"Fyra våningar experiment, värt tågresan en hel dag.",en:"Four floors of experiments, worth the train ride for a full day."},
+ desc:{sv:"Science center i Södertälje där allt är byggt för händer. Pendeltåg från Stockholm tar runt fyrtio minuter, gör det till en heldagsutflykt.",en:"A science centre in Södertälje where everything is built for hands. The commuter train from Stockholm takes around forty minutes, make it a full day trip."}},
+{id:"rumforbarn",n:"Rum för Barn, Kulturhuset",area:"Sergels torg",pid:"ChIJ0Vi_c16dX0YRMX8vP51eA6Y",r:4.3,rc:75,env:"in",ages:[0,1,2],time:[0,1],cats:["indoor"],free:true,expat:true,boost:"win",fac:["wc","eng","pram"],
+ hrs:{sv:"Dagligen ca 11–17",en:"Daily approx 11–17"},
+ why:{sv:"Gratis barnbibliotek mitt i stan, böcker på massor av språk.",en:"A free kids' library in the city centre, books in lots of languages."},
+ desc:{sv:"Barnens våning i Kulturhuset med läshörnor, målarateljé och matsäcksrum. Böcker på många språk, inklusive engelska och hindi.",en:"The children's floor of Kulturhuset with reading nooks, a painting studio and a picnic room. Books in many languages, including English and Hindi."}},
+{id:"intbibl",n:"Internationella biblioteket, Kungsholmen",area:"Kungsholmen",pid:"ChIJ_y_X5X2dX0YRodCSDQZxS5M",r:4.2,rc:146,env:"in",ages:[0,1],time:[0],cats:["indoor"],free:true,expat:true,boost:"win",fac:["wc","eng","pram"],
+ hrs:{sv:"Dagligen ca 10/12–17/20",en:"Daily approx 10/12–17/20"},
+ why:{sv:"Barnböcker på världens språk och mysiga läshörnor.",en:"Children's books in the world's languages and cosy reading corners."},
+ desc:{sv:"Nyrenoverat bibliotek med stor internationell barnavdelning. Perfekt lugn timme när vädret stänger ute er.",en:"A freshly renovated library with a big international children's section. A perfect calm hour when the weather locks you indoors."}},
+{id:"transtromer",n:"Tranströmerbiblioteket",area:"Södermalm",pid:"ChIJuS48hfp3X0YRIlEEAF6QyG4",r:4.3,rc:147,env:"in",ages:[0,1],time:[0],cats:["indoor"],free:true,expat:false,boost:"win",fac:["wc","pram"],
+ hrs:{sv:"Dagligen ca 10/12–17/20",en:"Daily approx 10/12–17/20"},
+ why:{sv:"Levande kvartersbibliotek mitt på Söder, lätt att kombinera.",en:"A lively neighbourhood library in the middle of Södermalm, easy to combine."},
+ desc:{sv:"Bibliotek vid Medborgarplatsen med barnhörna och mycket liv. Bra paus mellan lekplats och fika.",en:"A library by Medborgarplatsen with a kids' corner and plenty of life. A good pause between playground and fika."}},
+{id:"eriksdal",n:"Eriksdalsbadet",area:"Södermalm",pid:"ChIJdaBV9fR3X0YRdPx0bIKFYTo",r:4.0,rc:3585,env:"in",ages:[0,1,2],time:[1],cats:["indoor"],free:false,expat:true,boost:"win",fac:["wc","cafe","eng","swim"],
+ hrs:{sv:"Dagligen, äventyrsbadet kortare tider",en:"Daily, shorter hours for the fun pools"},
+ why:{sv:"Stort äventyrsbad med barnpooler, ute och inne efter säsong.",en:"A big leisure pool with kids' areas, outdoor and indoor by season."},
+ desc:{sv:"Stockholms huvudbad vid Skanstull med barnbassänger och uteområde på sommaren. Babysim-vänligt och lätt att nå.",en:"Stockholm's main swim centre by Skanstull with toddler pools and a summer outdoor area. Baby-swim friendly and easy to reach."}},
+{id:"hogdalen",n:"Högdalens simhall",area:"Högdalen",pid:"ChIJUWlgVYZ3X0YRnCwFMiGjzXQ",r:4.0,rc:265,env:"in",ages:[0,1,2],time:[1],cats:["indoor"],free:false,expat:false,boost:"win",fac:["wc","swim"],
+ hrs:{sv:"Dagligen, varierande tider",en:"Daily, varying hours"},
+ why:{sv:"Nyrenoverad simhall med egen liten pool för de minsta.",en:"A freshly renovated swim hall with its own little pool for the smallest."},
+ desc:{sv:"Simhall med barnpool, minirutschkana och familjeomklädning. Lugnare än de stora baden.",en:"A swim hall with a kids' pool, a mini slide and family changing rooms. Calmer than the big leisure pools."}},
+{id:"sundbyberg",n:"Sundbybergs simhall",area:"Sundbyberg",pid:"ChIJbwPhDN-dX0YRuOTl9dETxXc",r:4.2,rc:1120,env:"in",ages:[0,1,2],time:[1],cats:["indoor"],free:false,expat:false,boost:"win",fac:["wc","swim"],
+ hrs:{sv:"Dagligen, varierande tider",en:"Daily, varying hours"},
+ why:{sv:"Trivsam simhall nordväst om stan, bra för en blöt halvdag.",en:"A friendly swim hall northwest of town, good for a wet half day."},
+ desc:{sv:"Klassisk simhall med barntider och bastu. Bra alternativ för er på norra sidan.",en:"A classic swim hall with kids' sessions and a sauna. A solid option if you live on the north side."}},
+{id:"haga",n:"Hagaparken",area:"Solna",pid:"ChIJP-jGmaSdX0YRi4Kp-YCSU-I",r:4.5,rc:7144,env:"out",ages:[0,1,2],time:[1,2],cats:["nature"],free:true,expat:true,fac:["cafe","pram"],
+ hrs:{sv:"Alltid öppen",en:"Always open"},
+ why:{sv:"Kunglig park med gräs, kaféer och plats att bara springa.",en:"A royal park with lawns, cafés and room to just run."},
+ desc:{sv:"Stor öppen park norr om stan med picknickgräs, vatten och kaféer. Kombinera med Fjärilshuset om vädret vänder.",en:"A big open royal park just north of town with picnic lawns, water and cafés. Combine with the Butterfly House if the weather turns."}},
+{id:"hellas",n:"Hellasgården",area:"Nacka",pid:"ChIJPXNpIYt4X0YRbOuS0ChJGaw",r:4.5,rc:1219,env:"out",ages:[1,2],time:[1,2],cats:["nature"],free:true,expat:true,boost:"win",winter:true,fac:["wc","cafe"],
+ hrs:{sv:"Dagligen, friluftsgården ca 9–18/21",en:"Daily, lodge approx 9–18/21"},
+ why:{sv:"Skog, sjö och våfflor, på vintern skridskois på sjön.",en:"Forest, lake and waffles, in winter ice skating on the lake."},
+ desc:{sv:"Friluftsgård i Nackareservatet, tjugo minuter från Slussen. Bad och barnvänliga stigar på sommaren, pulka och skridskor på vintern.",en:"An outdoor recreation hub in the Nacka reserve, twenty minutes from Slussen. Swimming and easy trails in summer, sledding and lake skating in winter."}},
+{id:"grimsta",n:"Grimsta naturreservat",area:"Vällingby",pid:"ChIJlaCMJGyfX0YRlehGNyZWGX4",r:4.7,rc:249,env:"out",ages:[1,2],time:[1,2],cats:["nature"],free:true,expat:false,fac:[],
+ hrs:{sv:"Alltid öppet",en:"Always open"},
+ why:{sv:"Riktig skog med breda stigar, kojbygge och sjö.",en:"Proper forest with wide paths, den-building and a lake."},
+ desc:{sv:"Tallskog och ängar vid Mälaren med lättgångna stigar. Ta med matsäck, här finns inget köpt, bara natur.",en:"Pine forest and meadows by lake Mälaren with easy paths. Bring a packed lunch, there is nothing to buy here, only nature."}},
+{id:"storaskuggan",n:"Stora Skuggan",area:"Norra Djurgården",pid:"ChIJzwv6N3mdX0YRQEkS5r-EWkU",r:4.6,rc:286,env:"out",ages:[0,1,2],time:[1],cats:["nature"],free:true,expat:true,fac:["cafe","animals","pram"],
+ hrs:{sv:"Alltid öppen, 4H-gården dagtid",en:"Always open, the 4H farm daytime"},
+ why:{sv:"Stadsnära äng med kaniner och höns på 4H-gården intill.",en:"A city-edge meadow with rabbits and hens at the little 4H farm."},
+ desc:{sv:"Öppna gräsfält i Nationalstadsparken med en liten 4H-gård och café. Lagom vild natur för en knatte.",en:"Open lawns in the Royal National City Park with a small visiting farm and a café. Just-wild-enough nature for a toddler."}},
+{id:"bergianska",n:"Bergianska trädgården",area:"Frescati",pid:"ChIJeUs05gWdX0YRsVtx_wOeSw8",r:4.6,rc:3109,env:"out",ages:[0,1],time:[0,1],cats:["nature"],free:true,expat:true,fac:["cafe","pram"],
+ hrs:{sv:"Parken alltid öppen, växthusen dagtid",en:"Park always open, greenhouses daytime"},
+ why:{sv:"Botanisk trädgård med vagnvänliga gångar och fikastopp.",en:"A botanical garden with pram-smooth paths and a fika stop."},
+ desc:{sv:"Lugn trädgård vid Brunnsviken, gratis ute och växthus för en liten slant. Bra bebispromenad med fika på slutet.",en:"A calm garden by the Brunnsviken bay, free outdoors with cheap greenhouse entry. A great baby-walk loop with fika at the end."}},
+{id:"fredhall",n:"Fredhälls plaskdamm",area:"Fredhäll",pid:"ChIJ64Yq5Sh2X0YRRLCKFs4PAeE",r:4.3,rc:135,env:"out",ages:[0,1],time:[0,1],cats:["play"],free:true,expat:false,season:"sum",fac:["pram"],
+ hrs:{sv:"Sommar, vatten ungefär juni till augusti",en:"Summer, water roughly June to August"},
+ why:{sv:"Grund plaskdamm för de minsta, somrig klassiker på Kungsholmen.",en:"A shallow paddling pool for the littlest, a Kungsholmen summer classic."},
+ desc:{sv:"Stor grund plaskdamm i parkmiljö, perfekt för ettåringar varma dagar. Ta med solskydd, skuggan är begränsad.",en:"A big shallow paddling pool in a park, perfect for one year olds on warm days. Bring sun cover, shade is limited."}},
+{id:"kristall",n:"Kristallparkens plaskdamm",area:"Hägersten",pid:"ChIJvUWcwgd3X0YRMsjlxXvHwtQ",r:4.7,rc:40,env:"out",ages:[0,1],time:[0,1],cats:["play"],free:true,expat:false,season:"sum",fac:["wc","animals","pram"],
+ hrs:{sv:"Sommar, vatten ungefär juni till augusti",en:"Summer, water roughly June to August"},
+ why:{sv:"Liten plaskdamm, kaniner och grill, lugnare än innerstan.",en:"A small paddling pool, rabbits and barbecues, calmer than the inner city."},
+ desc:{sv:"Kvarterspark med lagom liten plaskdamm, djur och grillplatser. Lätt att ha koll på barnet här.",en:"A neighbourhood park with a just-small-enough paddling pool, animals and barbecue spots. Easy to keep track of your kid here."}}
+];
+
+/* ============ state ============ */
+let lang = "sv";
+let age = 1;            /* default: toddler */
+let timeSel = 0;        /* default: quick */
+let bucket = null;      /* fine | gray | wet | cold */
+let manualWeather = false;
+let weatherFailed = false;
+let lastWeather = null; /* {temp, code, precip} */
+let candidates = [];
+let candIdx = 0;
+let relaxed = false;
+let currentPlace = null;
+let openPanel = -1;
+
+const $ = id => document.getElementById(id);
+const T = () => I18N[lang];
+
+/* ============ helpers ============ */
+function mapsUrl(p){
+  return "https://www.google.com/maps/search/?api=1&query=" +
+    encodeURIComponent(p.n + ", Stockholm") + "&query_place_id=" + p.pid;
+}
+function seasonNow(){
+  const m = new Date().getMonth(); /* 0-11 */
+  if (m === 11 || m <= 1) return "win";
+  if (m >= 5 && m <= 7) return "sum";
+  return "mid";
+}
+function storeSafe(key, val){
+  try { if (val === undefined) return window.localStorage.getItem(key);
+        window.localStorage.setItem(key, val); } catch(e){ return null; }
+  return null;
+}
+
+/* ============ weather ============ */
+const WURL = "https://api.open-meteo.com/v1/forecast?latitude=59.33&longitude=18.07&current=temperature_2m,precipitation,weather_code";
+
+function condKey(code){
+  if (code <= 1) return "sun";
+  if (code === 2) return "part";
+  if (code === 3) return "cloud";
+  if (code === 45 || code === 48) return "fog";
+  if (code >= 51 && code <= 57) return "drizzle";
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return "rain";
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "snow";
+  if (code >= 95) return "thunder";
+  return "cloud";
+}
+function toBucket(temp, precip, code){
+  const k = condKey(code);
+  if (k === "snow") return "cold";
+  if (k === "rain" || k === "drizzle" || k === "thunder" || precip > 0.15) return "wet";
+  if (temp <= -1) return "cold";
+  if ((k === "sun" || k === "part") && temp >= 9) return "fine";
+  return "gray";
+}
+function iconFor(b, k){
+  const stroke = "#20302A";
+  if (b === "fine" || k === "sun" || k === "part")
+    return '<circle cx="17" cy="17" r="7" fill="#F0B23E"/><g stroke="'+stroke+'" stroke-width="1.6" stroke-linecap="round"><line x1="17" y1="3" x2="17" y2="7"/><line x1="17" y1="27" x2="17" y2="31"/><line x1="3" y1="17" x2="7" y2="17"/><line x1="27" y1="17" x2="31" y2="17"/><line x1="7" y1="7" x2="10" y2="10"/><line x1="24" y1="24" x2="27" y2="27"/><line x1="27" y1="7" x2="24" y2="10"/><line x1="10" y1="24" x2="7" y2="27"/></g>';
+  if (b === "wet")
+    return '<path d="M9 16a8 8 0 0 1 15.5-2.5A6 6 0 0 1 24 25H11a5.5 5.5 0 0 1-2-9z" fill="#FFFDF8" stroke="'+stroke+'" stroke-width="1.4"/><g stroke="#3F7159" stroke-width="1.8" stroke-linecap="round"><line x1="13" y1="27" x2="12" y2="31"/><line x1="18" y1="27" x2="17" y2="31"/><line x1="23" y1="27" x2="22" y2="31"/></g>';
+  if (b === "cold")
+    return '<g stroke="'+stroke+'" stroke-width="1.6" stroke-linecap="round"><line x1="17" y1="5" x2="17" y2="29"/><line x1="7" y1="11" x2="27" y2="23"/><line x1="27" y1="11" x2="7" y2="23"/><line x1="17" y1="5" x2="14" y2="8"/><line x1="17" y1="5" x2="20" y2="8"/><line x1="17" y1="29" x2="14" y2="26"/><line x1="17" y1="29" x2="20" y2="26"/></g>';
+  return '<path d="M8 18a8 8 0 0 1 15.5-2.5A6 6 0 0 1 23 27H10a5.5 5.5 0 0 1-2-9z" fill="#FFFDF8" stroke="'+stroke+'" stroke-width="1.4"/>';
+}
+function paintRibbon(){
+  const t = T();
+  const rb = $("ribbon");
+  rb.className = "ribbon " + (bucket === "fine" ? "w-sun" : bucket === "wet" ? "w-wet" : bucket === "cold" ? "w-cold" : "w-gray");
+  let condTxt, tempTxt;
+  if (manualWeather){
+    condTxt = t.cond.manual; tempTxt = bucket === "fine" ? "☀" : bucket === "wet" ? "🌧" : "❄";
+  } else if (lastWeather){
+    const k = condKey(lastWeather.code);
+    condTxt = t.cond[k]; tempTxt = Math.round(lastWeather.temp) + "°C";
+  } else {
+    condTxt = t.cond.unknown; tempTxt = "–";
+  }
+  $("wtemp").textContent = tempTxt;
+  $("wcond").textContent = condTxt + " · " + t.advice[bucket || "gray"];
+  $("whint").textContent = t.whintTap;
+  $("wicon").innerHTML = iconFor(bucket, lastWeather ? condKey(lastWeather.code) : "cloud");
+}
+function defaultBucketFromSeason(){
+  const s = seasonNow();
+  return s === "win" ? "cold" : s === "sum" ? "fine" : "gray";
+}
+async function fetchWeather(){
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
+  try {
+    const res = await fetch(WURL, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error("status " + res.status);
+    const data = await res.json();
+    const c = data.current;
+    lastWeather = { temp: c.temperature_2m, precip: c.precipitation, code: c.weather_code };
+    storeSafe("lt_weather", JSON.stringify({ ...lastWeather, ts: Date.now() }));
+    weatherFailed = false;
+    if (!manualWeather) bucket = toBucket(lastWeather.temp, lastWeather.precip, lastWeather.code);
+  } catch (e) {
+    clearTimeout(timer);
+    weatherFailed = true;
+    const cached = storeSafe("lt_weather");
+    if (cached){
+      try {
+        const w = JSON.parse(cached);
+        if (Date.now() - w.ts < 3 * 3600 * 1000){ /* trust cache for 3h */
+          lastWeather = w;
+          if (!manualWeather) bucket = toBucket(w.temp, w.precip, w.code);
+          weatherFailed = false;
+        }
+      } catch(_){}
+    }
+    if (weatherFailed && !manualWeather && !bucket) bucket = defaultBucketFromSeason();
+    if (weatherFailed) $("override").classList.add("open");
+  }
+  paintRibbon();
+  $("ovtext").textContent = weatherFailed ? T().ovFail : T().ovManual;
+}
+
+/* ============ recommendation ============ */
+function eligible(p, relaxTime){
+  if (!p.ages.includes(age)) return false;
+  if (!relaxTime && !p.time.includes(timeSel)) return false;
+  const s = seasonNow();
+  if (p.season === "sum" && s !== "sum") return false;
+  if (bucket === "wet" && p.env === "out") return false;
+  if (bucket === "cold" && p.env === "out" && !p.winter) return false;
+  return true;
+}
+function score(p){
+  let sc = p.r + Math.min(Math.log10(p.rc + 1), 3) * 0.35;
+  if (bucket === "fine"){ if (p.env === "out") sc += 1.1; if (p.env === "in") sc -= 0.7; }
+  if (bucket === "gray"){ if (p.env === "out" || p.env === "mix") sc += 0.4; }
+  if (bucket === "wet" || bucket === "cold"){ if (p.env === "in") sc += 0.7; if (p.env === "mix") sc += 0.1; }
+  if (bucket === "cold" && p.winter) sc += 1.0;
+  const s = seasonNow();
+  if (p.boost === s) sc += 0.7;
+  sc += Math.random() * 0.5;
+  return sc;
+}
+function buildCandidates(){
+  relaxed = false;
+  let pool = PLACES.filter(p => eligible(p, false));
+  if (pool.length === 0){ pool = PLACES.filter(p => eligible(p, true)); relaxed = true; }
+  if (pool.length === 0){ pool = PLACES.filter(p => p.ages.includes(age)); relaxed = true; }
+  if (pool.length === 0){ pool = PLACES.slice(); relaxed = true; }
+  candidates = pool.map(p => ({ p, s: score(p) })).sort((a, b) => b.s - a.s).map(x => x.p);
+  candIdx = 0;
+}
+function showAnswer(){
+  if (candidates.length === 0) buildCandidates();
+  const p = candidates[candIdx % candidates.length];
+  currentPlace = p;
+  const t = T();
+  $("relaxnote").textContent = t.relax;
+  $("relaxnote").classList.toggle("show", relaxed);
+  $("aArea").textContent = p.area;
+  $("aName").textContent = p.n;
+  $("aWhy").textContent = p.why[lang];
+  $("aStars").textContent = "★ " + p.r.toFixed(1) + " · " + p.rc + " " + t.reviews;
+  $("aHrs").textContent = p.hrs[lang];
+  $("aMaps").href = mapsUrl(p);
+  $("answer").classList.add("show");
+  $("answer").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* ============ browse ============ */
+const PANEL_FILTERS = [
+  p => p.cats.includes("play") && p.env !== "in",
+  p => p.env === "in",
+  p => p.cats.includes("nature"),
+  p => p.free,
+  p => p.expat
+];
+function renderPanels(){
+  const t = T();
+  const wrap = $("panelChips");
+  wrap.innerHTML = "";
+  t.panels.forEach((label, i) => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = label;
+    b.setAttribute("aria-pressed", openPanel === i ? "true" : "false");
+    b.addEventListener("click", () => { openPanel = openPanel === i ? -1 : i; renderPanels(); renderList(); });
+    wrap.appendChild(b);
+  });
+}
+function renderList(){
+  const list = $("browseList");
+  list.innerHTML = "";
+  if (openPanel < 0){ list.classList.remove("open"); return; }
+  const s = seasonNow();
+  const items = PLACES.filter(PANEL_FILTERS[openPanel])
+                      .filter(p => !(p.season === "sum" && s !== "sum"))
+                      .sort((a, b) => b.r - a.r);
+  items.forEach(p => {
+    const row = document.createElement("button");
+    row.className = "row";
+    row.innerHTML = '<span><span class="nm">' + p.n + '</span><br><span class="ar">' + p.area + "</span></span>" +
+                    '<span class="rt">★ ' + p.r.toFixed(1) + "</span>";
+    row.addEventListener("click", () => openSheet(p));
+    list.appendChild(row);
+  });
+  list.classList.add("open");
+}
+
+/* ============ detail sheet ============ */
+function openSheet(p){
+  currentPlace = p;
+  const t = T();
+  $("sArea").textContent = p.area;
+  $("sName").textContent = p.n;
+  $("sStars").textContent = "★ " + p.r.toFixed(1) + " · " + p.rc + " " + t.reviews;
+  $("sDesc").textContent = p.desc[lang];
+  const fac = $("sFac");
+  fac.innerHTML = "";
+  const tags = (p.free ? ["free"] : []).concat(p.fac || []);
+  tags.forEach(k => {
+    if (!t.fac[k]) return;
+    const sp = document.createElement("span");
+    sp.textContent = t.fac[k];
+    fac.appendChild(sp);
+  });
+  $("sHrs").textContent = p.hrs[lang] + ". " + t.verify;
+  $("sMaps").href = mapsUrl(p);
+  $("sMaps").textContent = t.maps;
+  $("sShare").textContent = t.share;
+  $("sClose").textContent = t.close;
+  $("scrim").classList.add("open");
+  $("sheet").classList.add("open");
+}
+function closeSheet(){
+  $("scrim").classList.remove("open");
+  $("sheet").classList.remove("open");
+}
+
+/* ============ share card (native canvas) ============ */
+function makeShareCard(p){
+  const W = 1080, H = 1350;
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const cx = cv.getContext("2d");
+  cx.fillStyle = "#FBF7EF"; cx.fillRect(0, 0, W, H);
+  const grad = cx.createLinearGradient(0, 0, W, 420);
+  if (bucket === "fine"){ grad.addColorStop(0, "#FDE9B8"); grad.addColorStop(1, "#D8EAF3"); }
+  else if (bucket === "wet"){ grad.addColorStop(0, "#C9D8E2"); grad.addColorStop(1, "#B3C7D4"); }
+  else if (bucket === "cold"){ grad.addColorStop(0, "#EDF4F9"); grad.addColorStop(1, "#D7E4EE"); }
+  else { grad.addColorStop(0, "#E6EAE7"); grad.addColorStop(1, "#D5DEE2"); }
+  cx.fillStyle = grad; cx.fillRect(0, 0, W, 420);
+  cx.fillStyle = "#F0B23E";
+  cx.beginPath(); cx.arc(900, 130, 70, 0, Math.PI * 2); cx.fill();
+  cx.fillStyle = "#3F7159";
+  cx.font = "600 34px ui-monospace, Menlo, monospace";
+  cx.fillText("L I L L A   T I M M E N", 70, 110);
+  cx.fillStyle = "#20302A";
+  cx.font = "600 92px Fraunces, Georgia, serif";
+  wrapText(cx, p.n, 70, 560, 940, 100);
+  cx.font = "500 44px Fraunces, Georgia, serif";
+  cx.fillStyle = "#3F7159";
+  cx.fillText(p.area + " · Stockholm", 70, 700);
+  cx.font = "400 40px system-ui, sans-serif";
+  cx.fillStyle = "#20302A";
+  wrapText(cx, p.why[lang], 70, 790, 940, 56);
+  cx.fillStyle = "#B07F1E";
+  cx.font = "600 44px system-ui, sans-serif";
+  cx.fillText("★ " + p.r.toFixed(1), 70, 1050);
+  cx.fillStyle = "rgba(32,48,42,.55)";
+  cx.font = "400 30px ui-monospace, Menlo, monospace";
+  cx.fillText(lang === "sv" ? "Vart ska vi i dag?" : "Where to today?", 70, 1240);
+  cx.fillText("ko-fi.com/shamathakur", 70, 1290);
+  return cv;
+}
+function wrapText(cx, text, x, y, maxW, lh){
+  const words = String(text).split(" ");
+  let line = "";
+  for (const w of words){
+    const test = line ? line + " " + w : w;
+    if (cx.measureText(test).width > maxW && line){ cx.fillText(line, x, y); line = w; y += lh; }
+    else line = test;
+  }
+  cx.fillText(line, x, y);
+  return y;
+}
+async function shareCard(){
+  if (!currentPlace) return;
+  const cv = makeShareCard(currentPlace);
+  cv.toBlob(async blob => {
+    if (!blob) return;
+    const file = new File([blob], "lilla-timmen.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })){
+      try { await navigator.share({ files: [file], title: "Lilla Timmen" }); return; } catch(e){}
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "lilla-timmen.png";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }, "image/png");
+}
+
+/* ============ UI wiring ============ */
+function renderChips(){
+  const t = T();
+  const ac = $("ageChips"); ac.innerHTML = "";
+  t.ages.forEach((label, i) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = label;
+    b.setAttribute("aria-pressed", age === i ? "true" : "false");
+    b.addEventListener("click", () => { age = i; renderChips(); candidates = []; });
+    ac.appendChild(b);
+  });
+  const tc = $("timeChips"); tc.innerHTML = "";
+  t.times.forEach((label, i) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = label;
+    b.setAttribute("aria-pressed", timeSel === i ? "true" : "false");
+    b.addEventListener("click", () => { timeSel = i; renderChips(); candidates = []; });
+    tc.appendChild(b);
+  });
+}
+function renderStatic(){
+  const t = T();
+  document.documentElement.lang = lang;
+  $("h1").textContent = t.h1;
+  $("sub").textContent = t.sub;
+  $("ageLabel").textContent = t.ageLabel;
+  $("timeLabel").textContent = t.timeLabel;
+  $("goBtn").textContent = t.go;
+  $("aMaps").textContent = t.maps;
+  $("aMore").textContent = t.more;
+  $("aNext").textContent = t.next;
+  $("browseLabel").textContent = t.browseLabel;
+  $("langBtn").textContent = lang === "sv" ? "EN" : "SV";
+  $("ovSun").textContent = t.ovSun;
+  $("ovRain").textContent = t.ovRain;
+  $("ovCold").textContent = t.ovCold;
+  $("ovRetry").textContent = t.ovRetry;
+  $("ovtext").textContent = weatherFailed ? t.ovFail : t.ovManual;
+  renderChips();
+  renderPanels();
+  renderList();
+  paintRibbon();
+  if ($("answer").classList.contains("show") && currentPlace) showAnswer();
+}
+function init(){
+  bucket = defaultBucketFromSeason();
+  renderStatic();
+  fetchWeather();
+  $("langBtn").addEventListener("click", () => { lang = lang === "sv" ? "en" : "sv"; renderStatic(); });
+  $("goBtn").addEventListener("click", () => { buildCandidates(); showAnswer(); });
+  $("aNext").addEventListener("click", () => { candIdx++; showAnswer(); });
+  $("aMore").addEventListener("click", () => { if (currentPlace) openSheet(currentPlace); });
+  $("ribbon").addEventListener("click", () => $("override").classList.toggle("open"));
+  document.querySelectorAll("[data-ov]").forEach(b => b.addEventListener("click", () => {
+    const v = b.getAttribute("data-ov");
+    if (v === "retry"){ manualWeather = false; fetchWeather(); }
+    else { manualWeather = true; bucket = v; candidates = []; paintRibbon(); }
+    $("ovtext").textContent = weatherFailed ? T().ovFail : T().ovManual;
+  }));
+  $("scrim").addEventListener("click", closeSheet);
+  $("sClose").addEventListener("click", closeSheet);
+  $("sShare").addEventListener("click", shareCard);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+}
+init();
+</script>
+</body>
+</html>
